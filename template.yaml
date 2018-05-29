@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: A scheduled Amazon Lambda function to delete stale tweets.
+
+Parameters:
+  NeuralyzerTweetAgeThreshold:
+    Description: The age threshold of a tweets to be deleted.
+    Type: String
+    Default: "2190h"
+
+Resources: 
+  NeuralyzerFunction:
+    Type: "AWS::Serverless::Function"
+    Properties: 
+      CodeUri: "."
+      Environment:
+        Variables:
+          NEURALYZER_TWEET_AGE_THRESHOLD: !Ref NeuralyzerTweetAgeThreshold
+      Events:
+        Neuralize: 
+          Type: Schedule
+          Properties: 
+            Schedule: "rate(1 day)"
+      Handler: main
+      Role: !GetAtt NeuralyzerRole.Arn
+      Runtime: go1.x
+  NeuralyzerRole:
+    Type: "AWS::IAM::Role"
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Statement: 
+          - 
+            Action: 
+              - "sts:AssumeRole"
+            Effect: Allow
+            Principal: 
+              Service: 
+                - lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns: 
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      Policies: 
+        - 
+          PolicyName: ParameterStoreAccess
+          PolicyDocument:
+            Statement: 
+              - 
+                Action: "ssm:GetParameter*"
+                Effect: Allow
+                Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/neuralyzer*
+            Version: "2012-10-17"
