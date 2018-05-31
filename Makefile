@@ -7,7 +7,7 @@ deploy:
 package: build
 	sam package --s3-bucket neuralyzer-global-config-us-east-1 --template-file template.yaml --output-template-file packaged.yaml
 
-test:
+test: build
 	sam local generate-event schedule | sam local invoke NeuralyzerFunction
 
 .PHONY: build deploy package test
