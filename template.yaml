@@ -1,51 +1,51 @@
-AWSTemplateFormatVersion: "2010-09-09"
-Transform: "AWS::Serverless-2016-10-31"
+AWSTemplateFormatVersion: '2010-09-09'
 Description: A scheduled Amazon Lambda function to delete stale tweets.
-
 Parameters:
   NeuralyzerTweetAgeThreshold:
+    Default: 2190h
     Description: The age threshold of a tweets to be deleted.
     Type: String
-    Default: "2190h"
-
-Resources: 
+Resources:
   NeuralyzerFunction:
-    Type: "AWS::Serverless::Function"
-    Properties: 
-      CodeUri: "."
+    Properties:
+      CodeUri: .
       Environment:
         Variables:
-          NEURALYZER_TWEET_AGE_THRESHOLD: !Ref NeuralyzerTweetAgeThreshold
+          NEURALYZER_TWEET_AGE_THRESHOLD:
+            Ref: NeuralyzerTweetAgeThreshold
       Events:
-        Neuralize: 
+        Neuralize:
+          Properties:
+            Schedule: rate(1 day)
           Type: Schedule
-          Properties: 
-            Schedule: "rate(1 day)"
       Handler: main
-      Role: !GetAtt NeuralyzerRole.Arn
+      Role:
+        Fn::GetAtt:
+        - NeuralyzerRole
+        - Arn
       Runtime: go1.x
+    Type: AWS::Serverless::Function
   NeuralyzerRole:
-    Type: "AWS::IAM::Role"
-    Properties: 
-      AssumeRolePolicyDocument: 
-        Statement: 
-          - 
-            Action: 
-              - "sts:AssumeRole"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action:
+          - sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+        Version: '2012-10-17'
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+      - PolicyDocument:
+          Statement:
+          - Action: ssm:GetParameter*
             Effect: Allow
-            Principal: 
-              Service: 
-                - lambda.amazonaws.com
-        Version: "2012-10-17"
-      ManagedPolicyArns: 
-        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-      Policies: 
-        - 
-          PolicyName: ParameterStoreAccess
-          PolicyDocument:
-            Statement: 
-              - 
-                Action: "ssm:GetParameter*"
-                Effect: Allow
-                Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/neuralyzer*
-            Version: "2012-10-17"
+            Resource:
+              Fn::Sub: arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/neuralyzer*
+          Version: '2012-10-17'
+        PolicyName: ParameterStoreAccess
+    Type: AWS::IAM::Role
+Transform: AWS::Serverless-2016-10-31
