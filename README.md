@@ -37,10 +37,10 @@ Once the SSM parameters above exist, [install](https://github.com/awslabs/aws-sa
 
 **Note**: Be careful not to accidentally delete all of your tweets by invoking the function locally!
 
-Next, use the `test` target of the `Makefile` to build a Linux compatible binary and execute it within a container image that mimics the Amazon Lambda execution environment for Go.
+Next, use the `testacc` target of the `Makefile` to build a Linux compatible binary and execute it within a container image that mimics the Amazon Lambda execution environment for Go.
 
 ```bash
-$ make test -e AWS_PROFILE=personal
+$ make testacc -e AWS_PROFILE=personal
 GOOS=linux go build -o main main.go
 sam local generate-event schedule | sam local invoke NeuralyzerFunction
 2018-05-29 23:05:59 Reading invoke payload from stdin (you can also pass it from file with --event)
